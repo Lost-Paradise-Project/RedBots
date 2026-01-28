@@ -17,9 +17,9 @@ from redbot.core.utils.chat_formatting import pagify, humanize_timedelta
 log = logging.getLogger("red.wizard-cogs.gameserverstatus")
 
 SS14_RUN_LEVEL_STATUS = {
-    0: "In Lobby",
-    1: "In game",
-    2: "Ending",
+    0: "В лобби",
+    1: "В игре",
+    2: "Завершение",
 }
 
 
@@ -45,11 +45,11 @@ class SS14ServerStatus(discord.ui.LayoutView):
             discord.ui.TextDisplay(content=f"**{name}**"),
             discord.ui.Separator(visible=True, spacing=discord.SeparatorSpacing.small),
             discord.ui.TextDisplay(
-                content=f"**Players:** {player_count}\n**Status:** {status}\n**Map:** {gamemap}\n**Preset:** {preset}"
+                content=f"**Игроки:** {player_count}\n**Статус:** {status}\n**Карта:** {gamemap}\n**Пресет:** {preset}"
             ),
             accent_color=color,
         )
-        self.footer_text = discord.ui.TextDisplay(content=f"-# Round ID: {round_id}")
+        self.footer_text = discord.ui.TextDisplay(content=f"-# ID раунда: {round_id}")
 
         self.add_item(self.container)
         self.add_item(self.footer_text)
@@ -102,14 +102,14 @@ class GameServerStatus(commands.Cog):
             cfg_lower = {key.lower(): value for (key, value) in cfg.items()}
 
             if server not in cfg_lower:
-                await ctx.send("That server does not exist!")
+                await ctx.send("Этого сервера не существует!")
                 return
 
             data = cfg_lower[server]
             try:
                 fetched_data = await self.get_ss14_server_status(data)
             except StatusFetchError:
-                return await ctx.send("An error has occured when fetching server info.")
+                return await ctx.send("Произошла ошибка при получении информации о сервере.")
 
             if legacy is True:
                 return await ctx.send(
@@ -147,7 +147,7 @@ class GameServerStatus(commands.Cog):
         game_server_data = game_servers.get(server_name)
         if game_server_data is None:
             return await interaction.response.send_message(
-                "That server does not exist!", ephemeral=True
+                "Этого сервера не существует!", ephemeral=True
             )
 
         # Defer here so we can wait for the HTTP status to return
@@ -156,7 +156,7 @@ class GameServerStatus(commands.Cog):
             fetched_data = await self.get_ss14_server_status(game_server_data)
         except StatusFetchError:
             return await interaction.followup.send(
-                "An error has occured when fetching server info."
+                "Произошла ошибка при получении информации о сервере."
             )
 
         if legacy is True:
@@ -193,7 +193,7 @@ class GameServerStatus(commands.Cog):
         servers = await self.config.guild(ctx.guild).servers()
 
         if len(servers) == 0:
-            await ctx.send("No servers are currently configured!")
+            await ctx.send("В настоящее время серверы не настроены!")
             return
 
         content = "\n".join(
@@ -204,12 +204,12 @@ class GameServerStatus(commands.Cog):
         embed_pages = []
         for idx, page in enumerate(pages, start=1):
             embed = discord.Embed(
-                title="Server List",
+                title="Список серверов",
                 description=page,
                 colour=await ctx.embed_colour(),
             )
             embed.set_footer(
-                text="Page {num}/{total}".format(num=idx, total=len(pages))
+                text="Страница {num}/{total}".format(num=idx, total=len(pages))
             )
             embed_pages.append(embed)
         await menus.menu(ctx, embed_pages, menus.DEFAULT_CONTROLS)
@@ -242,9 +242,9 @@ class GameServerStatus(commands.Cog):
         if run_level == 1 and round_start_time is not None:
             start_time = dateutil.parser.isoparse(round_start_time)
             delta = datetime.now(timezone.utc) - start_time
-            status = f"{SS14_RUN_LEVEL_STATUS.get(run_level, 'unknown')} ({humanize_timedelta(timedelta=delta, maximum_units=2)})"
+            status = f"{SS14_RUN_LEVEL_STATUS.get(run_level, 'неизвестно')} ({humanize_timedelta(timedelta=delta, maximum_units=2)})"
         else:
-            status = SS14_RUN_LEVEL_STATUS.get(run_level, "Unknown")
+            status = SS14_RUN_LEVEL_STATUS.get(run_level, "Неизвестно")
 
         return {
             "name": name,
@@ -288,7 +288,7 @@ class GameServerStatus(commands.Cog):
 
         async with self.config.guild(ctx.guild).servers() as cur_servers:
             if name in cur_servers:
-                return await ctx.send("A server with that name already exists.")
+                return await ctx.send("Сервер с таким именем уже существует.")
 
             cur_servers[name] = {
                 "type": "ss14",
@@ -307,7 +307,7 @@ class GameServerStatus(commands.Cog):
         name = name.lower()
         async with self.config.guild(ctx.guild).servers() as cur_servers:
             if name not in cur_servers:
-                await ctx.send("That server did not exist.")
+                await ctx.send("Этого сервера не существует.")
                 return
 
             del cur_servers[name]
@@ -337,7 +337,7 @@ class GameServerStatus(commands.Cog):
             servers = await self.config.guild(ctx.guild).servers()
 
             if name not in servers:
-                await ctx.send("That server does not exist!")
+                await ctx.send("Этого сервера не существует!")
                 return
 
             data = servers[name]
@@ -350,7 +350,7 @@ class GameServerStatus(commands.Cog):
             msg = await channel.send(view=component_view)
             watches.append({"message": msg.id, "server": name, "channel": channel.id})
 
-            return await ctx.send("The server watch is successfully added.")
+            return await ctx.send("Наблюдение за сервером успешно добавлено.")
 
     @statuscfg.command()
     async def remwatch(
@@ -392,7 +392,7 @@ class GameServerStatus(commands.Cog):
         watches = await self.config.guild(ctx.guild).watches()
 
         if len(watches) == 0:
-            await ctx.send("No watches are currently configured!")
+            await ctx.send("В настоящее время наблюдения не настроены!")
             return
 
         content = "\n".join(
@@ -406,12 +406,12 @@ class GameServerStatus(commands.Cog):
         embed_pages = []
         for idx, page in enumerate(pages, start=1):
             embed = discord.Embed(
-                title="Watch List",
+                title="Список наблюдения",
                 description=page,
                 colour=await ctx.embed_colour(),
             )
             embed.set_footer(
-                text="Page {num}/{total}".format(num=idx, total=len(pages))
+                text="Страница {num}/{total}".format(num=idx, total=len(pages))
             )
             embed_pages.append(embed)
         await menus.menu(ctx, embed_pages, menus.DEFAULT_CONTROLS)
@@ -453,26 +453,26 @@ class GameServerStatus(commands.Cog):
                     )  # Ensure backwards compatability with old watches
         except discord.errors.HTTPException as e:
             log.exception(
-                "Error happened while trying to execute gameserverstatus loop.",
+                "Произошла ошибка при выполнении цикла gameserverstatus.",
                 exc_info=e,
             )
         except Exception as e:
             log.exception(
-                "An unexpected error occurred in the printer loop.", exc_info=e
+                "В цикле printer произошла непредвиденная ошибка.", exc_info=e
             )
 
     @statuscfg.command()
     async def slashcommandvisible(self, ctx: commands.Context, enabled: bool = None):
         """
-        Should slash commands be hidden? (Visible only to the sender.)
+        Должны ли слеш-команды быть скрыты? (Видны только отправителю.)
         """
         if enabled is None:
             setting = await self.config.guild(ctx.guild).slashcommandvisible()
             if setting is True:
-                await ctx.send("Status slash commands are currently visible to everyone in the channel they are run in.")
+                await ctx.send("Слеш-команды статуса в настоящее время видны всем в канале, в котором они выполняются.")
                 return
             else:
-                await ctx.send("Status slash commands are currently only visible to the sender.")
+                await ctx.send("Слеш-команды статуса в настоящее время видны только отправителю.")
                 return
         await self.config.guild(ctx.guild).slashcommandvisible.set(enabled)
         await ctx.tick()
@@ -524,11 +524,11 @@ def legacy_embed(
     color: discord.Color,
 ) -> discord.Embed:
     embed = discord.Embed(color=color, title=name)
-    embed.add_field(name="Players Online", value=player_count)
-    embed.add_field(name="Status", value=status)
-    embed.add_field(name="Round ID", value=round_id)
-    embed.add_field(name="Map", value=gamemap)
-    embed.add_field(name="Preset", value=preset)
+    embed.add_field(name="Игроков онлайн", value=player_count)
+    embed.add_field(name="Статус", value=status)
+    embed.add_field(name="ID раунда", value=round_id)
+    embed.add_field(name="Карта", value=gamemap)
+    embed.add_field(name="Пресет", value=preset)
     return embed
 
 
